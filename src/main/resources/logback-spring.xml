@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE xml>
+<configuration scan="true" scanPeriod="10 seconds">
+
+	<springProperty scope="context" name="LOG_HOME" source="muldb.log.home" defaultValue="." />
+
+	<conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+	<conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+	<conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
+
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr([%X{X-B3-TraceId},%thread]){faint} %clr(%-5level) %clr(%logger){cyan} %clr([line:%L]){magenta} - %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<!-- 文件输出日志 (文件大小策略进行文件输出，超过指定大小对文件备份) -->
+	<springProfile name="!(local)">
+		<appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+			<File>${LOG_HOME}/logs/mds.log</File>
+			<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+				<FileNamePattern>${LOG_HOME}/logs/mds.%d{yyyy-MM-dd}.log</FileNamePattern>
+				<maxHistory>30</maxHistory>
+			</rollingPolicy>
+			<layout class="ch.qos.logback.classic.PatternLayout">
+				<Pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{X-B3-TraceId},%thread] %-5level %logger{60} [line:%L] - %msg%n</Pattern>
+			</layout>
+		</appender>
+	</springProfile>
+
+	<logger name="com.uetty.mds" level="DEBUG"/>
+	<logger name="springfox" level="ERROR"/>
+	<logger name="org.springframework" level="INFO"/>
+	<logger name="org.springframework.boot" level="INFO"/>
+	<logger name="org.apache" level="INFO"/>
+	<logger name="com.zaxxer" level="INFO"/>
+	<logger name="org.hibernate" level="INFO"/>
+	<logger name="brave.Tracer" level="ERROR"/>
+	<logger name="org.springframework.boot.autoconfigure.logging" level="INFO"/>
+
+	<springProfile name="local">
+		<root level="INFO">
+			<appender-ref ref="stdout"/>
+		</root>
+	</springProfile>
+
+	<springProfile name="!(local | prod)">
+		<root level="DEBUG">
+			<appender-ref ref="file"/>
+			<appender-ref ref="stdout"/>
+		</root>
+	</springProfile>
+
+	<springProfile name="prod">
+		<root level="INFO">
+			<appender-ref ref="file"/>
+		</root>
+	</springProfile>
+</configuration>
